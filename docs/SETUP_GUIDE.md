@@ -509,18 +509,78 @@ sudo docker build --network=host -t rockugv:latest .
 
 ### 7.2 Start the System
 
+#### Option A: Using Docker Compose (Recommended for production)
+
 ```bash
 # Start in detached mode
 sudo docker compose up -d
 
 # View logs
 sudo docker compose logs -f
+
+# Stop
+sudo docker compose down
+```
+
+#### Option B: Using Docker Run (For testing/debugging)
+
+```bash
+sudo docker run -it --rm \
+  --runtime nvidia \
+  --network host \
+  --privileged \
+  -v $(pwd)/models:/app/models \
+  -v /dev:/dev \
+  --device /dev/video0:/dev/video0 \
+  detection-api
+```
+
+**Flags explained:**
+| Flag | Purpose |
+|------|---------|
+| `-it` | Interactive mode with terminal |
+| `--rm` | Remove container when stopped |
+| `--runtime nvidia` | Enable GPU access |
+| `--network host` | Use host network (port 8000 directly) |
+| `--privileged` | Full device access |
+| `-v $(pwd)/models:/app/models` | Mount models directory |
+| `-v /dev:/dev` | Mount all devices |
+| `--device /dev/video0:/dev/video0` | Specifically map camera |
+
+#### Option C: Docker Run in Background
+
+```bash
+# Run in background (detached)
+sudo docker run -d \
+  --name rockugv \
+  --restart unless-stopped \
+  --runtime nvidia \
+  --network host \
+  --privileged \
+  -v $(pwd)/models:/app/models \
+  -v /dev:/dev \
+  --device /dev/video0:/dev/video0 \
+  detection-api
+
+# View logs
+sudo docker logs -f rockugv
+
+# Stop and remove
+sudo docker stop rockugv
+sudo docker rm rockugv
 ```
 
 ### 7.3 Stop the System
 
 ```bash
+# If using docker compose
 sudo docker compose down
+
+# If using docker run with --name
+sudo docker stop rockugv && sudo docker rm rockugv
+
+# Force stop all containers
+sudo docker rm -f $(sudo docker ps -aq)
 ```
 
 ---

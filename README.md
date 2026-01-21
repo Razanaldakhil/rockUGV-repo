@@ -87,6 +87,7 @@ sudo docker compose up -d
 ## 🔧 Key Commands
 
 ```bash
+# === DOCKER COMPOSE ===
 # View logs
 sudo docker compose logs -f
 
@@ -100,8 +101,38 @@ sudo docker compose restart
 sudo docker compose build --no-cache
 sudo docker compose up -d
 
+# === DOCKER RUN (Alternative) ===
+# Run interactively (for testing)
+sudo docker run -it --rm \
+  --runtime nvidia \
+  --network host \
+  --privileged \
+  -v $(pwd)/models:/app/models \
+  -v /dev:/dev \
+  --device /dev/video0:/dev/video0 \
+  detection-api
+
+# Run in background
+sudo docker run -d \
+  --name rockugv \
+  --restart unless-stopped \
+  --runtime nvidia \
+  --network host \
+  --privileged \
+  -v $(pwd)/models:/app/models \
+  -v /dev:/dev \
+  --device /dev/video0:/dev/video0 \
+  detection-api
+
+# === UTILITIES ===
 # Check camera
 ls -la /dev/video*
+
+# Monitor GPU
+tegrastats
+
+# Check container status
+sudo docker ps -a
 ```
 
 ## ⚠️ Important Notes

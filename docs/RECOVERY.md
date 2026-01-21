@@ -318,8 +318,19 @@ curl http://localhost:8000/health
 
 - [ ] **Verify** (2 min)
   ```bash
+  # Using docker compose
   sudo docker compose up -d
   curl http://localhost:8000/health
+  
+  # OR using docker run
+  sudo docker run -it --rm \
+    --runtime nvidia \
+    --network host \
+    --privileged \
+    -v $(pwd)/models:/app/models \
+    -v /dev:/dev \
+    --device /dev/video0:/dev/video0 \
+    detection-api
   ```
 
 ---

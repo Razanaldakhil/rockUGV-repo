@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  detection-api:
+    build: .
+    ports:
+      - "8000:8000"
+    runtime: nvidia
+    privileged: true   
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ./models:/app/models
+      - ./videos:/app/videos
+      - /dev:/dev   
+    devices:
+      - /dev/video0:/dev/video0  

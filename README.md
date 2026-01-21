@@ -25,15 +25,21 @@ This repository contains the deployment files for the RockUGV border surveillanc
 rockUGV/
 ├── Dockerfile              # Docker build configuration
 ├── docker-compose.yml      # Container orchestration
+├── rockugv.service         # Systemd service file
 ├── app/
 │   ├── main.py            # FastAPI application
-│   ├── camera.py          # USB camera handler
-│   └── requirements.txt   # Python dependencies (inside container)
+│   └── camera.py          # USB camera handler
+├── scripts/
+│   ├── startup.sh         # Boot startup script
+│   ├── shutdown.sh        # Graceful shutdown script
+│   └── install-service.sh # Service installation script
 ├── models/
 │   └── best.pt            # Trained YOLO model weights
 ├── videos/                 # Optional: test videos
+├── logs/                   # Startup/runtime logs
 └── docs/
     ├── SETUP_GUIDE.md     # Detailed setup instructions
+    ├── AUTO_START.md      # Auto-start configuration
     ├── TROUBLESHOOTING.md # Common errors and solutions
     └── RECOVERY.md        # Emergency recovery procedures
 ```
@@ -81,8 +87,33 @@ sudo docker compose up -d
 | Document | Description |
 |----------|-------------|
 | [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) | Complete setup from fresh Jetson |
+| [AUTO_START.md](docs/AUTO_START.md) | Configure auto-start on boot |
 | [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common errors and solutions |
 | [RECOVERY.md](docs/RECOVERY.md) | SD card reflash and recovery |
+
+## 🔄 Auto-Start on Boot
+
+To automatically start the surveillance system when Jetson powers on:
+
+```bash
+# One-command installation
+cd ~/rockUGV
+sudo ./scripts/install-service.sh
+```
+
+After installation, the system will:
+- Start automatically on every boot
+- Set maximum GPU performance
+- Restart if it crashes
+- Log all events to `logs/startup.log`
+
+**Service commands:**
+```bash
+sudo systemctl status rockugv   # Check status
+sudo systemctl stop rockugv     # Stop service
+sudo systemctl restart rockugv  # Restart service
+sudo journalctl -u rockugv -f   # View logs
+```
 
 ## 🔧 Key Commands
 

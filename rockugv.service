@@ -1,0 +1,22 @@
+[Unit]
+Description=RockUGV Border Surveillance System
+Documentation=https://github.com/your-repo/rockUGV
+After=docker.service network-online.target
+Wants=network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=nvidia
+Group=nvidia
+WorkingDirectory=/home/nvidia/rockUGV
+ExecStartPre=/bin/sleep 10
+ExecStart=/home/nvidia/rockUGV/scripts/startup.sh
+ExecStop=/home/nvidia/rockUGV/scripts/shutdown.sh
+TimeoutStartSec=300
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

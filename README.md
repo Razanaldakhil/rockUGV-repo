@@ -78,9 +78,8 @@ sudo docker compose up -d
 
 ### Access the System
 
-- **Video Feed**: `http://<jetson-ip>:8000/video_feed`
+- **Video Feed**: `http://<jetson-ip>:8000/camera/stream`
 - **Health Check**: `http://<jetson-ip>:8000/health`
-- **API Docs**: `http://<jetson-ip>:8000/docs`
 
 ## 📚 Documentation
 

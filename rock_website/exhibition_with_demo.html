@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>الصخرة الذكية للمراقبة الحدودية</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: white;
+            transition: direction 0.3s ease;
+        }
+
+        .exhibition-container {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, rgba(0, 200, 150, 0.1) 0%, rgba(0, 100, 150, 0.1) 100%);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            border-bottom: 2px solid rgba(0, 200, 150, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .header-title h1 {
+            font-size: 28px;
+            background: linear-gradient(90deg, #00c896, #00a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.active {
+            background: #00c896;
+        }
+
+        .status-dot.demo {
+            background: #ffaa00;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .lang-switch, .mode-switch {
+            background: rgba(0, 200, 150, 0.2);
+            border: 1px solid rgba(0, 200, 150, 0.4);
+            border-radius: 20px;
+            padding: 5px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .lang-btn, .mode-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active, .mode-btn.active {
+            background: rgba(0, 200, 150, 0.3);
+            color: #00c896;
+        }
+
+        .lang-btn:hover, .mode-btn:hover {
+            color: #00c896;
+        }
+
+        .settings-btn {
+            background: rgba(0, 200, 150, 0.2);
+            border: 1px solid rgba(0, 200, 150, 0.4);
+            color: #00c896;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background: rgba(0, 200, 150, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Main Layout */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            padding: 20px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* Live Feed - MAIN FOCUS */
+        .detection-panel {
+            background: rgba(26, 26, 46, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(0, 200, 150, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            font-size: 20px;
+            color: #00c896;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .live-feed {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid rgba(0, 200, 150, 0.3);
+        }
+
+        .live-feed img, .live-feed video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .feed-placeholder {
+            color: #666;
+            font-size: 24px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .feed-status {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 200, 150, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feed-status.active {
+            display: block;
+            animation: pulse 2s infinite;
+        }
+
+        .feed-status.demo {
+            background: rgba(255, 170, 0, 0.9);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00c896, #00a0ff);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 200, 150, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffaa00, #ff8800);
+        }
+
+        .btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        /* Right Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 3D Model - SMALLER */
+        .viewer-panel {
+            background: rgba(26, 26, 46, 0.6);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(0, 200, 150, 0.2);
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title-small {
+            font-size: 16px;
+            color: #00c896;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        model-viewer {
+            width: 100%;
+            flex: 1;
+            background: radial-gradient(circle at center, #1a1a2e, #0a0a0a);
+            border-radius: 10px;
+            --progress-bar-color: #00c896;
+        }
+
+        model-viewer button[slot^="hotspot"] {
+            display: block !important;
+            background: rgba(0, 200, 150, 0.95) !important;
+            border: 2px solid rgba(255, 255, 255, 0.6) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8) !important;
+            color: white !important;
+            cursor: pointer;
+            font-family: 'Cairo', -apple-system, sans-serif !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            padding: 6px 10px !important;
+            white-space: nowrap !important;
+            max-width: 80px !important;
+            text-align: center !important;
+            pointer-events: auto !important;
+        }
+
+        /* Detection Classes Panel */
+        .classes-panel {
+            background: rgba(26, 26, 46, 0.6);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(0, 200, 150, 0.2);
+            flex: 1;
+        }
+
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .class-badge {
+            background: rgba(0, 200, 150, 0.1);
+            border: 1px solid rgba(0, 200, 150, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .class-badge:hover {
+            background: rgba(0, 200, 150, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* System Info Panel */
+        .info-panel {
+            background: rgba(26, 26, 46, 0.6);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid rgba(0, 200, 150, 0.2);
+        }
+
+        .info-grid {
+            display: grid;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .info-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-label {
+            color: #888;
+        }
+
+        .info-value {
+            color: #00c896;
+            font-weight: bold;
+        }
+
+        /* Settings Popup */
+        .settings-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .settings-popup.active {
+            display: flex;
+        }
+
+        .settings-content {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(10, 10, 10, 0.95) 100%);
+            border-radius: 20px;
+            padding: 30px;
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid rgba(0, 200, 150, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .settings-header h2 {
+            color: #00c896;
+            font-size: 24px;
+        }
+
+        .close-btn {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid rgba(255, 68, 68, 0.4);
+            color: #ff4444;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 68, 68, 0.4);
+            transform: rotate(90deg);
+        }
+
+        .settings-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            color: #00c896;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .api-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 200, 150, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 200, 150, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="exhibition-container">
+        <!-- Header -->
+        <div class="header">
+            <a href="/">
+                    <img src="logo.svg" alt="PSAU Logo" width="200" height="auto">
+                </a>
+
+            <div class="header-title">
+                <h1 data-i18n="title">الصخرة الذكية للمراقبة الحدودية</h1>
+                <p data-i18n="subtitle">نظام مراقبة متقدم مع كشف فوري بالذكاء الاصطناعي</p>
+            </div>
+            <div class="header-controls">
+                <div class="status-bar">
+                    <div class="status-indicator">
+                        <div class="status-dot" id="apiStatus"></div>
+                        <span>API</span>
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-dot" id="modelStatus"></div>
+                        <span>YOLO</span>
+                    </div>
+                    <div class="status-indicator">
+                        <div class="status-dot" id="cameraStatus"></div>
+                        <span data-i18n="camera">كاميرا</span>
+                    </div>
+                </div>
+                <div class="mode-switch">
+                    <button class="mode-btn active" onclick="switchMode('live')" data-mode="live">
+                        <span data-i18n="modeLive">🎥 مباشر</span>
+                    </button>
+                    <button class="mode-btn" onclick="switchMode('demo')" data-mode="demo">
+                        <span data-i18n="modeDemo">🎬 تجريبي</span>
+                    </button>
+                </div>
+                <div class="lang-switch">
+                    <button class="lang-btn active" onclick="switchLanguage('ar')" data-lang="ar">العربية</button>
+                    <button class="lang-btn" onclick="switchLanguage('en')" data-lang="en">English</button>
+                </div>
+                <button class="settings-btn" onclick="toggleSettings()">⚙️ <span data-i18n="settings">الإعدادات</span></button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Live Feed - MAIN PANEL -->
+            <div class="detection-panel">
+                <h3 class="panel-title">
+                    <span id="feedTitleIcon">🎥</span>
+                    <span data-i18n="liveFeedTitle" id="feedTitle">البث المباشر مع الكشف الفوري</span>
+                </h3>
+                <div class="live-feed" id="liveFeed">
+                    <div class="feed-placeholder">
+                        <div data-i18n="waitingStream">🎥 في انتظار بدء البث</div>
+                        <div style="font-size: 16px; margin-top: 10px; color: #888;" data-i18n="clickStart">اضغط للبدء</div>
+                    </div>
+                    <div class="feed-status" id="feedStatus">🔴 LIVE</div>
+                </div>
+                <div class="controls-row" id="liveControls">
+                    <button class="btn" id="startCameraBtn" onclick="startCamera()">
+                        ▶️ <span data-i18n="startStream">بدء البث المباشر</span>
+                    </button>
+                    <button class="btn btn-danger" id="stopCameraBtn" onclick="stopCamera()" style="display: none;">
+                        ⏹️ <span data-i18n="stopStream">إيقاف البث</span>
+                    </button>
+                </div>
+                <div class="controls-row" id="demoControls" style="display: none;">
+                    <button class="btn btn-warning" id="startDemoBtn" onclick="startDemo()">
+                        ▶️ <span data-i18n="startDemo">تشغيل الفيديو التجريبي</span>
+                    </button>
+                    <button class="btn btn-danger" id="stopDemoBtn" onclick="stopDemo()" style="display: none;">
+                        ⏹️ <span data-i18n="stopDemo">إيقاف الفيديو</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="sidebar">
+                <!-- 3D Model - SMALLER -->
+                <div class="viewer-panel">
+                    <h3 class="panel-title-small">🎨 <span data-i18n="model3d">النموذج ثلاثي الأبعاد</span></h3>
+                    <model-viewer
+                        id="viewer"
+                        src="https://raw.githubusercontent.com/Razanaldakhil/rock_internal/main/AR-Rock_compressed.glb"
+                        ios-src="https://raw.githubusercontent.com/Razanaldakhil/rock_internal/main/AR-Rock.usdz"
+                        ar
+                        ar-modes="webxr scene-viewer quick-look"
+                        ar-scale="auto"
+                        camera-controls
+                        auto-rotate
+                        auto-rotate-delay="3000"
+                        rotation-per-second="30deg"
+                        shadow-intensity="1"
+                        exposure="1.2"
+                        environment-image="neutral"
+                        camera-orbit="90deg 80deg 17m"
+                        field-of-view="30deg"
+                        min-camera-orbit="auto auto 0.5m"
+                        max-camera-orbit="auto auto 10m"
+                        touch-action="pan-y"
+                        loading="eager">
+
+                        <button slot="hotspot-1" data-position="-4 1.6 4" data-normal="-4 1 1" id="hotspot-camera">
+                            📷 <span data-i18n="hotspotCamera">كاميرا</span>
+                        </button>
+                        <button slot="hotspot-2" data-position="-4 0.60 4" data-normal="0 0 0" id="hotspot-jetson">
+                            💻 Jetson
+                        </button>
+                        <button slot="hotspot-3" data-position="-4 -1 4" data-normal="4 1 1" id="hotspot-ugv">
+                            🚗 UGV
+                        </button>
+                    </model-viewer>
+                </div>
+
+                <!-- Detection Classes -->
+                <div class="classes-panel">
+                    <h3 class="panel-title-small">🏷️ <span data-i18n="detectionClasses">الفئات المكتشفة</span></h3>
+                    <div class="classes-grid">
+                        <div class="class-badge">👤 <span data-i18n="classPerson">شخص</span></div>
+                        <div class="class-badge">😊 <span data-i18n="classFace">وجه</span></div>
+                        <div class="class-badge">🔪 <span data-i18n="classKnife">سكين</span></div>
+                        <div class="class-badge">🔫 <span data-i18n="classWeapon">سلاح</span></div>
+                        <div class="class-badge">🚗 <span data-i18n="classVehicle">مركبة</span></div>
+                        <div class="class-badge">💼 <span data-i18n="classBag">حقيبة</span></div>
+                        <div class="class-badge">🔥 <span data-i18n="classFire">نار</span></div>
+                    </div>
+                </div>
+
+                <!-- System Specs -->
+                <div class="info-panel">
+                    <h3 class="panel-title-small">📊 <span data-i18n="techSpecs">المواصفات التقنية</span></h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label" data-i18n="specProcessor">المعالج</span>
+                            <span class="info-value">Jetson Nano</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label" data-i18n="specModel">النموذج</span>
+                            <span class="info-value">YOLOv8</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label" data-i18n="specResolution">الدقة</span>
+                            <span class="info-value">640×640</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label" data-i18n="specPower">الطاقة</span>
+                            <span class="info-value">5-10W</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Popup -->
+    <div class="settings-popup" id="settingsPopup">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>⚙️ <span data-i18n="settingsTitle">إعدادات النظام</span></h2>
+                <button class="close-btn" onclick="toggleSettings()">✕</button>
+            </div>
+
+            <!-- API Configuration -->
+            <div class="settings-section">
+                <h3>🔗 <span data-i18n="apiSettings">إعدادات الاتصال بالخادم</span></h3>
+                <input type="text" class="api-input" id="apiUrl" value="http://localhost:8000" placeholder="API Server URL">
+                <button class="btn" onclick="checkAPIStatus()" style="width: 100%;">✓ <span data-i18n="testConnection">اختبار الاتصال</span></button>
+                <p class="help-text" data-i18n="apiHelp">
+                    💡 تأكد من تشغيل الخادم على العنوان المحدد.
+                </p>
+            </div>
+
+            <!-- Demo Video URL -->
+            <div class="settings-section">
+                <h3>🎬 <span data-i18n="demoVideoSettings">إعدادات الفيديو التجريبي</span></h3>
+                <input type="text" class="api-input" id="demoVideoUrl" value="" placeholder="https://example.com/demo-video.mp4">
+                <p class="help-text" data-i18n="demoVideoHelp">
+                    💡 أدخل رابط الفيديو التجريبي (MP4, WebM). يمكنك استخدام فيديو من YouTube, Vimeo, أو رابط مباشر.
+                </p>
+            </div>
+
+            <!-- System Info -->
+            <div class="settings-section">
+                <h3>ℹ️ <span data-i18n="systemInfo">معلومات النظام</span></h3>
+                <p class="help-text" style="margin-top: 0;" data-i18n="systemInfoText">
+                    <strong>نظام الكشف:</strong> YOLOv8<br>
+                    <strong>المعالج:</strong> NVIDIA Jetson Nano<br>
+                    <strong>الدقة:</strong> 640×640 بكسل<br>
+                    <strong>الكاميرا:</strong> USB Camera
+                </p>
+            </div>
+
+            <!-- Instructions -->
+            <div class="settings-section">
+                <h3>📖 <span data-i18n="instructions">تعليمات الاستخدام</span></h3>
+                <p class="help-text" style="margin-top: 0;" data-i18n="instructionsText">
+                    <strong>وضع المباشر:</strong> يتصل بالكاميرا الحقيقية ويعرض الكشف الفوري<br><br>
+                    <strong>وضع التجريبي:</strong> يشغل فيديو مسجل مسبقاً (مفيد للعروض التوضيحية)<br><br>
+                    <strong>⌨️ اختصارات:</strong> مفتاح المسافة للتشغيل/الإيقاف | ESC للإغلاق
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            ar: {
+                title: "الصخرة الذكية للمراقبة الحدودية",
+                subtitle: "نظام مراقبة متقدم مع كشف فوري بالذكاء الاصطناعي",
+                camera: "كاميرا",
+                settings: "الإعدادات",
+                modeLive: "🎥 مباشر",
+                modeDemo: "🎬 تجريبي",
+                liveFeedTitle: "البث المباشر مع الكشف الفوري",
+                demoFeedTitle: "الفيديو التجريبي",
+                waitingStream: "🎥 في انتظار بدء البث",
+                clickStart: "اضغط للبدء",
+                startStream: "بدء البث المباشر",
+                stopStream: "إيقاف البث",
+                startDemo: "تشغيل الفيديو التجريبي",
+                stopDemo: "إيقاف الفيديو",
+                model3d: "النموذج ثلاثي الأبعاد",
+                hotspotCamera: "كاميرا",
+                detectionClasses: "الفئات المكتشفة",
+                classPerson: "شخص",
+                classFace: "وجه",
+                classKnife: "سكين",
+                classWeapon: "سلاح",
+                classVehicle: "مركبة",
+                classBag: "حقيبة",
+                classFire: "نار",
+                techSpecs: "المواصفات التقنية",
+                specProcessor: "المعالج",
+                specModel: "النموذج",
+                specResolution: "الدقة",
+                specPower: "الطاقة",
+                settingsTitle: "إعدادات النظام",
+                apiSettings: "إعدادات الاتصال بالخادم",
+                testConnection: "اختبار الاتصال",
+                apiHelp: "💡 تأكد من تشغيل الخادم على العنوان المحدد.",
+                demoVideoSettings: "إعدادات الفيديو التجريبي",
+                demoVideoHelp: "💡 أدخل رابط الفيديو التجريبي (MP4, WebM). يمكنك استخدام فيديو من YouTube, Vimeo, أو رابط مباشر.",
+                systemInfo: "معلومات النظام",
+                systemInfoText: '<strong>نظام الكشف:</strong> YOLOv8<br><strong>المعالج:</strong> NVIDIA Jetson Nano<br><strong>الدقة:</strong> 640×640 بكسل<br><strong>الكاميرا:</strong> USB Camera',
+                instructions: "تعليمات الاستخدام",
+                instructionsText: '<strong>وضع المباشر:</strong> يتصل بالكاميرا الحقيقية ويعرض الكشف الفوري<br><br><strong>وضع التجريبي:</strong> يشغل فيديو مسجل مسبقاً (مفيد للعروض التوضيحية)<br><br><strong>⌨️ اختصارات:</strong> مفتاح المسافة للتشغيل/الإيقاف | ESC للإغلاق',
+                stoppedStream: "⏹️ تم إيقاف البث",
+                stoppedDemo: "⏹️ تم إيقاف الفيديو",
+                demoVideoError: "⚠️ خطأ في تحميل الفيديو\n\nتأكد من:\n1. صحة رابط الفيديو\n2. أن الفيديو متاح للوصول العام\n3. أن الرابط يشير إلى ملف فيديو مباشر",
+                cameraError: "⚠️ فشل بدء الكاميرا\n\nتأكد من:\n1. تشغيل الخادم\n2. توصيل كاميرا USB\n3. صلاحيات الوصول للكاميرا"
+            },
+            en: {
+                title: "Smart Rock Border Surveillance",
+                subtitle: "Advanced AI-Powered Real-Time Detection System",
+                camera: "Camera",
+                settings: "Settings",
+                modeLive: "🎥 Live",
+                modeDemo: "🎬 Demo",
+                liveFeedTitle: "Live Detection Feed",
+                demoFeedTitle: "Demo Video",
+                waitingStream: "🎥 Waiting for Stream",
+                clickStart: "Click to Start",
+                startStream: "Start Live Stream",
+                stopStream: "Stop Stream",
+                startDemo: "Play Demo Video",
+                stopDemo: "Stop Video",
+                model3d: "3D Model",
+                hotspotCamera: "Camera",
+                detectionClasses: "Detection Classes",
+                classPerson: "Person",
+                classFace: "Face",
+                classKnife: "Knife",
+                classWeapon: "Weapon",
+                classVehicle: "Vehicle",
+                classBag: "Bag",
+                classFire: "Fire",
+                techSpecs: "Technical Specifications",
+                specProcessor: "Processor",
+                specModel: "Model",
+                specResolution: "Resolution",
+                specPower: "Power",
+                settingsTitle: "System Settings",
+                apiSettings: "API Connection Settings",
+                testConnection: "Test Connection",
+                apiHelp: "💡 Make sure the server is running at the specified address.",
+                demoVideoSettings: "Demo Video Settings",
+                demoVideoHelp: "💡 Enter demo video URL (MP4, WebM). You can use videos from YouTube, Vimeo, or direct links.",
+                systemInfo: "System Information",
+                systemInfoText: '<strong>Detection System:</strong> YOLOv8<br><strong>Processor:</strong> NVIDIA Jetson Nano<br><strong>Resolution:</strong> 640×640 pixels<br><strong>Camera:</strong> USB Camera',
+                instructions: "Usage Instructions",
+                instructionsText: '<strong>Live Mode:</strong> Connects to real camera and shows live detection<br><br><strong>Demo Mode:</strong> Plays pre-recorded video (useful for demonstrations)<br><br><strong>⌨️ Shortcuts:</strong> Space to Play/Stop | ESC to Close',
+                stoppedStream: "⏹️ Stream Stopped",
+                stoppedDemo: "⏹️ Video Stopped",
+                demoVideoError: "⚠️ Error loading video\n\nCheck:\n1. Video URL is correct\n2. Video is publicly accessible\n3. URL points to actual video file",
+                cameraError: "⚠️ Failed to start camera\n\nCheck:\n1. Server is running\n2. USB camera connected\n3. Camera access permissions"
+            }
+        };
+
+        // Global variables
+        let API_BASE_URL = 'http://localhost:8000';
+        let currentMode = 'live';
+        let cameraActive = false;
+        let demoActive = false;
+        let currentLanguage = localStorage.getItem('language') || 'ar';
+
+        // Initialize
+        window.onload = function() {
+            loadLanguage(currentLanguage);
+            checkAPIStatus();
+            initialize3DViewer();
+            setInterval(checkAPIStatus, 15000);
+        };
+
+        // Mode Switching
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // Stop any active feeds
+            if (cameraActive) stopCamera();
+            if (demoActive) stopDemo();
+            
+            // Update mode buttons
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            // Switch controls
+            const liveControls = document.getElementById('liveControls');
+            const demoControls = document.getElementById('demoControls');
+            
+            if (mode === 'live') {
+                liveControls.style.display = 'flex';
+                demoControls.style.display = 'none';
+                document.getElementById('feedTitleIcon').textContent = '🎥';
+                document.getElementById('feedTitle').setAttribute('data-i18n', 'liveFeedTitle');
+                document.getElementById('cameraStatus').parentElement.style.display = 'flex';
+            } else {
+                liveControls.style.display = 'none';
+                demoControls.style.display = 'flex';
+                document.getElementById('feedTitleIcon').textContent = '🎬';
+                document.getElementById('feedTitle').setAttribute('data-i18n', 'demoFeedTitle');
+                document.getElementById('cameraStatus').parentElement.style.display = 'none';
+            }
+            
+            loadLanguage(currentLanguage);
+            resetFeed();
+            console.log(`✅ Mode switched to: ${mode}`);
+        }
+
+        // Language Switching
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            loadLanguage(lang);
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        function loadLanguage(lang) {
+            const html = document.documentElement;
+            
+            if (lang === 'ar') {
+                html.setAttribute('lang', 'ar');
+                html.setAttribute('dir', 'rtl');
+            } else {
+                html.setAttribute('lang', 'en');
+                html.setAttribute('dir', 'ltr');
+            }
+            
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.innerHTML = translations[lang][key];
+                }
+            });
+        }
+
+        // Toggle Settings
+        function toggleSettings() {
+            document.getElementById('settingsPopup').classList.toggle('active');
+        }
+
+        document.getElementById('settingsPopup').addEventListener('click', function(e) {
+            if (e.target === this) toggleSettings();
+        });
+
+        // API Status Check
+        async function checkAPIStatus() {
+            if (currentMode !== 'live') return;
+            
+            API_BASE_URL = document.getElementById('apiUrl').value;
+            const statuses = {
+                api: document.getElementById('apiStatus'),
+                model: document.getElementById('modelStatus'),
+                camera: document.getElementById('cameraStatus')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/`);
+                const data = await response.json();
+                
+                statuses.api.classList.add('active');
+                statuses.model.classList.toggle('active', data.model_loaded);
+                statuses.camera.classList.toggle('active', data.camera_active);
+            } catch (error) {
+                statuses.api.classList.remove('active');
+                statuses.model.classList.remove('active');
+                statuses.camera.classList.remove('active');
+            }
+        }
+
+        // Start Camera
+        async function startCamera() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/camera/start`, { method: 'POST' });
+                if (!response.ok) throw new Error('Failed');
+                
+                cameraActive = true;
+                document.getElementById('startCameraBtn').style.display = 'none';
+                document.getElementById('stopCameraBtn').style.display = 'block';
+                document.getElementById('cameraStatus').classList.add('active');
+                
+                const liveFeed = document.getElementById('liveFeed');
+                liveFeed.innerHTML = `
+                    <img src="${API_BASE_URL}/camera/stream" alt="Live Feed">
+                    <div class="feed-status active">🔴 LIVE</div>
+                `;
+                
+                console.log('✅ Live stream started');
+            } catch (error) {
+                alert(translations[currentLanguage].cameraError);
+            }
+        }
+
+        // Stop Camera
+        async function stopCamera() {
+            try {
+                await fetch(`${API_BASE_URL}/camera/stop`, { method: 'POST' });
+                cameraActive = false;
+                document.getElementById('startCameraBtn').style.display = 'block';
+                document.getElementById('stopCameraBtn').style.display = 'none';
+                document.getElementById('cameraStatus').classList.remove('active');
+                resetFeed();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Start Demo
+        function startDemo() {
+            const videoUrl = document.getElementById('demoVideoUrl').value.trim();
+            
+            if (!videoUrl) {
+                alert(currentLanguage === 'ar' 
+                    ? '⚠️ الرجاء إدخال رابط الفيديو في الإعدادات' 
+                    : '⚠️ Please enter video URL in settings');
+                toggleSettings();
+                return;
+            }
+            
+            demoActive = true;
+            document.getElementById('startDemoBtn').style.display = 'none';
+            document.getElementById('stopDemoBtn').style.display = 'block';
+            document.getElementById('cameraStatus').classList.add('demo');
+            
+            const liveFeed = document.getElementById('liveFeed');
+            liveFeed.innerHTML = `
+                <video autoplay loop muted playsinline>
+                    <source src="${videoUrl}" type="video/mp4">
+                    Your browser does not support video
+                </video>
+                <div class="feed-status active demo">🎬 DEMO</div>
+            `;
+            
+            const video = liveFeed.querySelector('video');
+            video.onerror = () => {
+                alert(translations[currentLanguage].demoVideoError);
+                stopDemo();
+            };
+            
+            console.log('✅ Demo video started');
+        }
+
+        // Stop Demo
+        function stopDemo() {
+            demoActive = false;
+            document.getElementById('startDemoBtn').style.display = 'block';
+            document.getElementById('stopDemoBtn').style.display = 'none';
+            document.getElementById('cameraStatus').classList.remove('demo');
+            resetFeed();
+        }
+
+        // Reset Feed
+        function resetFeed() {
+            const liveFeed = document.getElementById('liveFeed');
+            const msg = currentMode === 'live' 
+                ? translations[currentLanguage].stoppedStream 
+                : translations[currentLanguage].stoppedDemo;
+            const clickMsg = translations[currentLanguage].clickStart;
+            
+            liveFeed.innerHTML = `
+                <div class="feed-placeholder">
+                    <div>${msg}</div>
+                    <div style="font-size: 16px; margin-top: 10px; color: #888;">${clickMsg}</div>
+                </div>
+            `;
+        }
+
+        // Initialize 3D Viewer
+        function initialize3DViewer() {
+            const viewer = document.getElementById('viewer');
+            
+            viewer.addEventListener('load', () => {
+                setTimeout(() => {
+                    viewer.cameraOrbit = '90deg 80deg 17m';
+                    viewer.fieldOfView = '30deg';
+                    viewer.jumpCameraToGoal();
+                }, 100);
+
+                ['hotspot-camera', 'hotspot-jetson', 'hotspot-ugv'].forEach(id => {
+                    const btn = document.getElementById(id);
+                    if (btn) {
+                        btn.addEventListener('click', () => {
+                            const info = currentLanguage === 'ar'
+                                ? `معلومات المكون - Component Info`
+                                : `Component Information`;
+                            alert(`ℹ️ ${info}`);
+                        });
+                    }
+                });
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('settingsPopup').classList.remove('active');
+            }
+            if (e.key === ' ' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                if (currentMode === 'live') {
+                    cameraActive ? stopCamera() : startCamera();
+                } else {
+                    demoActive ? stopDemo() : startDemo();
+                }
+            }
+        });
+
+        console.log('🪨 Smart Rock Surveillance - Exhibition Mode');
+        console.log('🎬 Live + Demo Mode Available');
+        console.log('🌍 Arabic & English Support');
+    </script>
+</body>
+</html>

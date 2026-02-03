@@ -1,4 +1,5 @@
-FROM dustynv/l4t-pytorch:r36.4.0
+# FROM dustynv/l4t-pytorch:r36.4.0
+FROM nvcr.io/nvidia/l4t-pytorch:r32.4.3pth1.6-py3
 
 WORKDIR /app
 
